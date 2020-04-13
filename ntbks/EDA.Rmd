@@ -1,0 +1,66 @@
+---
+title: "EDA"
+author: "Wisly Juganda"
+date: "4/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(tidyverse)
+stv <- read.csv("data/sales_train_validation.csv")
+sub <- subset(stv, select = c(-item_id, -dept_id, -cat_id, -store_id, -state_id))
+cal <- read_csv("data/calendar.csv")
+```
+
+## Preliminary EDA
+
+```{r cars, echo=FALSE}
+
+subb <- filter(sub, id == "FOODS_1_005_CA_3_validation")
+sub_l <- melt(data=subb, id.vars = 'id')
+sub_l <- sub_l %>% mutate(variable=c(1:1913))
+ggplot(data=sub_l)+
+  geom_line(aes(x=variable, y=value), stat="identity", color="red")+
+  ggtitle("Sales per day of FOODS_1_005_CA_3")+
+  xlab("Day")+
+  ylab("No. of Sales")
+
+```
+
+```{r pressure, echo=FALSE}
+hobsub <- filter(sub, id == "HOBBIES_1_008_CA_1_validation")
+hobsub_l <- melt(data=hobsub, id.vars = 'id')
+hobsub_l <- hobsub_l %>% mutate(variable=c(1:1913))
+ggplot()+
+  geom_line(data=hobsub_l, aes(x=variable, y=value), stat="identity", color="purple", alpha=0.6)+
+  ggtitle("Sales per day of HOBBIES_1_008_CA_1_validation")+
+  xlab("Day")+
+  ylab("No. of Sales")
+```
+
+```{r, echo=FALSE}
+hhsub <- filter(sub, id == "HOUSEHOLD_2_509_TX_2_validation")
+hhsub_l <- melt(data=hhsub, id.vars = 'id')
+hhsub_l <- hhsub_l %>% mutate(variable=c(1:1913))
+ggplot()+
+  geom_line(data=hhsub_l, aes(x=variable, y=value), stat="identity", color="green", alpha=0.6)+
+  ggtitle("Sales per day of HOUSEHOLD_2_509_TX_2")+
+  xlab("Day")+
+  ylab("No. of Sales")
+```
+
+### Comparing sales of all three products
+
+```{r}
+ggplot()+
+  geom_line(data=hhsub_l, aes(x=variable, y=value), stat="identity", color="green")+
+  geom_line(data=sub_l, aes(x=variable, y=value), stat="identity", color="red", alpha=0.5)+
+  geom_line(data=hobsub_l, aes(x=variable, y=value), stat="identity", color="purple", alpha=0.4)+
+  xlab("Day")+
+  ylab("No. of Sales")
+```
+

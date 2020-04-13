@@ -1,5 +1,10 @@
+.RData
+.Rhistory
+*.Rproj
+
 data/*
 
 !*/
 
 !my_sample.csv
+.Rproj.user
