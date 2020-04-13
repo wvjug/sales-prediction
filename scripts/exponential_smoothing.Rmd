@@ -1,0 +1,94 @@
+---
+title: "exponential_smoothing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+
+cross_df <- function(xs, ys, y_names=LETTERS[1:length(ys)]){
+  df <- map(ys, function(y) xs*y) %>%  as.data.frame 
+  colnames(df) <- y_names
+  df
+}
+
+cross_df(1:3, 6:10)
+
+# exp_smooth <- function(xs, n_after=28){
+#   rep(0, n_after)
+# }
+
+exp_smooth <- function(data, nafter=28) {
+  x <- ts(data, start = 1, frequency = 365)
+  pred <- ses(x, h=nafter)
+  return(pred)
+}
+
+# exp_smooth(c(0))
+a <- exp_smooth(1:730)
+a$mean
+ts(1:730, start = 1, frequency = 365)
+
+exp_smooth_wrap <- function(.data, n_after=28){
+  # each elem = 1 day
+  tseries_colsum <- .data %>% 
+    select(-id) %>% 
+    summarize_all(.funs = sum) %>% 
+    as_vector()
+  
+  # each elem = unique item
+  prop_of_items <- .data %>% 
+    select(-id) %>% 
+    mutate(s = rowSums(.)) %>% 
+    pull(s)
+  
+  prop_of_items <- (prop_of_items + 1)/sum(prop_of_items + 1)
+  
+  # Vector of `n_after` length
+  preds <- exp_smooth(tseries_colsum, n_after)$mean
+  pred_df <- cross_df(prop_of_items, preds, y_names = paste0("F", 1:28))
+  pred_df$id <- .data$id
+  pred_df
+  
+}
+
+
+```
+
+# Predict by subsets
+
+* 3 categories
+* 10 stores (in 3 states)
+
+
+```{r}
+sales <- read_csv("../data/sales_train_validation.csv")
+sub <- read_csv("../data/sample_submission.csv")
+
+colnames(sales)[1910:1919]
+
+pred_df <- sales %>% 
+  select(id, cat_id, store_id, d_1:d_1913) %>% 
+  group_by(cat_id, store_id) %>% 
+  # slice(1:5) %>% 
+  nest %>% 
+  mutate(pred = map(data, exp_smooth_wrap)) %>% 
+  select(-data) %>% 
+  unnest(pred) %>% 
+  ungroup %>% 
+  select(id, F1:F28)
+
+
+pred_df
+
+pred_df2 <- pred_df
+pred_df2$id <- sub$id[30491:60980]
+
+pred_df_full <- bind_rows(pred_df, pred_df2)
+write_csv(pred_df_full, "../data/my_submit.csv")
+```
