@@ -1,7 +1,14 @@
+<<<<<<< HEAD
+.RData
+.Rhistory
+*.Rproj
+=======
 deleteme.*
+>>>>>>> e462ff8c0506cb9898bcd72b3e4eb36223d904b6
 
 data/*
 
 !*/
 
 !my_sample.csv
+.Rproj.user
